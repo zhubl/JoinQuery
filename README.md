@@ -1,3 +1,3 @@
 
-## Combine Search 
-### A Elasticsearch plugin , which is used for search data from multiple indices.
+## Join Query 
+### Elasticsearch 插件，在多索引中join方式查询。
