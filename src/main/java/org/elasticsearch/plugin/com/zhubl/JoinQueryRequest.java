@@ -1,4 +1,4 @@
-package org.elasticsearch.plugin.com.zhubl;
+package plugins;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.action.ActionRequest;
@@ -10,9 +10,7 @@ import org.elasticsearch.common.ParseFieldMatcher;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentParser;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryParseContext;
-import org.elasticsearch.index.query.TermsQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchRequestParsers;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
@@ -42,14 +40,22 @@ public class JoinQueryRequest extends ActionRequest implements CompositeIndicesR
     private int filedPoint = -1;
 
     public void computeNowSearchHits(SearchResponse searchResponse){
+
         List<Map<String, Object>> searchHitsList = Arrays.stream(searchResponse.getHits().getHits())
             .map(hit->{
                 String index = hit.getIndex();
                 String type = hit.getType();
                 Map<String, Object> newSource = new HashMap<>();
-                hit.getSource().entrySet().stream().forEach(entry->{
-                    newSource.put(String.join(".", index, type, entry.getKey()), entry.getValue());
-                });
+                if(hit.getSource() != null && !hit.getSource().isEmpty()) {
+                    hit.getSource().entrySet().stream().forEach(entry->{
+                        newSource.put(String.join(".", index, type, entry.getKey()), entry.getValue());
+                    });
+                }
+                if(hit.getFields() != null && !hit.getFields().isEmpty()) {
+                    hit.getFields().entrySet().stream().forEach(entry->{
+                        newSource.put(String.join(".", index, type, entry.getKey()), entry.getValue().getValue());
+                    });
+                }
                 return newSource;
             })
             .collect(Collectors.toList());
