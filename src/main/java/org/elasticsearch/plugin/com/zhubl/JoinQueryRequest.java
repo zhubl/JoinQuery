@@ -42,14 +42,22 @@ public class JoinQueryRequest extends ActionRequest implements CompositeIndicesR
     private int filedPoint = -1;
 
     public void computeNowSearchHits(SearchResponse searchResponse){
+
         List<Map<String, Object>> searchHitsList = Arrays.stream(searchResponse.getHits().getHits())
             .map(hit->{
                 String index = hit.getIndex();
                 String type = hit.getType();
                 Map<String, Object> newSource = new HashMap<>();
-                hit.getSource().entrySet().stream().forEach(entry->{
-                    newSource.put(String.join(".", index, type, entry.getKey()), entry.getValue());
-                });
+                if(hit.getSource() != null && !hit.getSource().isEmpty()) {
+                    hit.getSource().entrySet().stream().forEach(entry->{
+                        newSource.put(String.join(".", index, type, entry.getKey()), entry.getValue());
+                    });
+                }
+                if(hit.getFields() != null && !hit.getFields().isEmpty()) {
+                    hit.getFields().entrySet().stream().forEach(entry->{
+                        newSource.put(String.join(".", index, type, entry.getKey()), entry.getValue().getValue());
+                    });
+                }
                 return newSource;
             })
             .collect(Collectors.toList());
